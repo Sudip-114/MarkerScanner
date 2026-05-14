@@ -1,0 +1,119 @@
+apply plugin: "com.android.application"
+apply plugin: "com.facebook.react"
+
+/**
+ * MarkerScanner - Android build.gradle
+ * Configures OpenCV, VisionCamera, and React Native.
+ */
+
+react {
+    /* Automatically link react-native libraries */
+    autolinkLibrariesWithApp()
+}
+
+def enableSeparateBuildPerCPUArchitecture = false
+def enableProguardInReleaseBuilds = false
+def jscFlavor = 'io.github.nicolo-ribaudo:hermes-android:0.75.4'
+
+android {
+    ndkVersion rootProject.ext.ndkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdk rootProject.ext.compileSdkVersion
+
+    namespace "com.markerscanner"
+
+    defaultConfig {
+        applicationId "com.markerscanner"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+
+        // Enable multidex for large dependency tree
+        multiDexEnabled true
+
+        // ABI filters: only build for ARM (modern Android)
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"
+        }
+
+        // CMake build for native JNI code
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++17 -frtti -fexceptions"
+                arguments "-DANDROID_STL=c++_shared",
+                          "-DOPENCV_ANDROID_SDK=${project.file('../../opencv-android-sdk').absolutePath}"
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.22.1"
+        }
+    }
+
+    splits {
+        abi {
+            reset()
+            enable enableSeparateBuildPerCPUArchitecture
+            universalApk false
+            include "arm64-v8a", "armeabi-v7a", "x86_64"
+        }
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+        release {
+            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
+                storeFile file(MYAPP_UPLOAD_STORE_FILE)
+                storePassword MYAPP_UPLOAD_STORE_PASSWORD
+                keyAlias MYAPP_UPLOAD_KEY_ALIAS
+                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled enableProguardInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }
+    }
+
+    packagingOptions {
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        // Exclude duplicate OpenCV native libs
+        exclude 'META-INF/DEPENDENCIES'
+    }
+}
+
+dependencies {
+    // React Native
+    implementation("com.facebook.react:react-android")
+    implementation("com.facebook.react:hermes-android")
+
+    // AndroidX
+    implementation "androidx.appcompat:appcompat:1.7.0"
+    implementation "androidx.multidex:multidex:2.0.1"
+
+    // OpenCV Android SDK (local AAR)
+    implementation(name: 'opencv-android-sdk', ext: 'aar')
+
+    // Camera2 for VisionCamera support
+    implementation "androidx.camera:camera-core:1.4.0"
+    implementation "androidx.camera:camera-camera2:1.4.0"
+    implementation "androidx.camera:camera-lifecycle:1.4.0"
+}

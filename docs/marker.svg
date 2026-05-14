@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  MarkerScanner Custom Marker — Printable Design
+  ================================================
+  Grid: 7×7 cells
+  Cell size: 1 unit = ~1cm for A4 printing at 70mm total size
+
+  PATTERN DESCRIPTION:
+  - Outer ring (row 0, row 6, col 0, col 6): ALL BLACK
+  - Anchor squares at (1,1), (1,5), (5,1): BLACK   ← 3-point finder pattern
+  - (5,5) is intentionally ABSENT — creates asymmetry for orientation detection
+  - Timing strip at row 3, cols 1–5: B W B W B
+  - All other interior cells: WHITE (open space)
+
+  Print this on white paper, black ink only.
+  Recommended minimum print size: 70mm × 70mm
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="140mm" height="140mm"
+     viewBox="0 0 140 140">
+
+  <!-- White background -->
+  <rect width="140" height="140" fill="white"/>
+
+  <!-- Quiet zone (10mm each side) is already included in 140mm total -->
+
+  <!-- We draw the marker starting at (10,10), 120mm × 120mm -->
+  <!-- Cell size = 120/7 ≈ 17.14mm -->
+
+  <!-- Define cell size as variable via transform -->
+  <!-- Each cell: x = 10 + col * (120/7), y = 10 + row * (120/7) -->
+
+  <!-- Helper: cell(r,c) = black rect at (10 + c*s, 10 + r*s) size s×s where s = 120/7 -->
+
+  <!-- ── ROW 0 (top border, all black) ── -->
+  <rect x="10"        y="10"        width="120" height="17.14" fill="black"/>
+
+  <!-- ── ROW 6 (bottom border, all black) ── -->
+  <rect x="10"        y="112.86"    width="120" height="17.14" fill="black"/>
+
+  <!-- ── COL 0 (left border rows 1–5) ── -->
+  <rect x="10"        y="27.14"     width="17.14" height="85.72" fill="black"/>
+
+  <!-- ── COL 6 (right border rows 1–5) ── -->
+  <rect x="112.86"    y="27.14"     width="17.14" height="85.72" fill="black"/>
+
+  <!-- ── Interior (rows 1-5, cols 1-5): WHITE (already white from background) ── -->
+
+  <!-- ── ANCHOR at (1,1) ── -->
+  <rect x="27.14" y="27.14" width="17.14" height="17.14" fill="black"/>
+
+  <!-- ── ANCHOR at (1,5) ── -->
+  <rect x="95.72" y="27.14" width="17.14" height="17.14" fill="black"/>
+
+  <!-- ── ANCHOR at (5,1) ── -->
+  <rect x="27.14" y="95.72" width="17.14" height="17.14" fill="black"/>
+
+  <!-- ── TIMING STRIP row 3, cols 1–5 (B W B W B) ── -->
+  <!-- (3,1) = BLACK -->
+  <rect x="27.14" y="61.43" width="17.14" height="17.14" fill="black"/>
+  <!-- (3,2) = WHITE — skip -->
+  <!-- (3,3) = BLACK -->
+  <rect x="61.43" y="61.43" width="17.14" height="17.14" fill="black"/>
+  <!-- (3,4) = WHITE — skip -->
+  <!-- (3,5) = BLACK -->
+  <rect x="95.72" y="61.43" width="17.14" height="17.14" fill="black"/>
+
+  <!-- ── (5,5) intentionally absent (white) — orientation key ── -->
+
+  <!-- Debug grid lines (comment out before printing) -->
+  <!--
+  <g stroke="#ccc" stroke-width="0.2" fill="none">
+    <line x1="10" y1="10" x2="130" y2="10"/>
+    <line x1="10" y1="27.14" x2="130" y2="27.14"/>
+    <line x1="10" y1="44.29" x2="130" y2="44.29"/>
+    <line x1="10" y1="61.43" x2="130" y2="61.43"/>
+    <line x1="10" y1="78.57" x2="130" y2="78.57"/>
+    <line x1="10" y1="95.72" x2="130" y2="95.72"/>
+    <line x1="10" y1="112.86" x2="130" y2="112.86"/>
+    <line x1="10" y1="130" x2="130" y2="130"/>
+    <line x1="10" y1="10" x2="10" y2="130"/>
+    <line x1="27.14" y1="10" x2="27.14" y2="130"/>
+    <line x1="44.29" y1="10" x2="44.29" y2="130"/>
+    <line x1="61.43" y1="10" x2="61.43" y2="130"/>
+    <line x1="78.57" y1="10" x2="78.57" y2="130"/>
+    <line x1="95.72" y1="10" x2="95.72" y2="130"/>
+    <line x1="112.86" y1="10" x2="112.86" y2="130"/>
+    <line x1="130" y1="10" x2="130" y2="130"/>
+  </g>
+  -->
+
+  <!-- Outer crop mark / quiet zone border -->
+  <rect x="1" y="1" width="138" height="138" fill="none" stroke="#ddd" stroke-width="0.5" stroke-dasharray="3,3"/>
+
+</svg>

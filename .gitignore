@@ -1,0 +1,9 @@
+node_modules/
+android/.gradle/
+android/app/build/
+android/build/
+.idea/
+.vscode/
+*.keystore
+*.log
+.DS_Store
