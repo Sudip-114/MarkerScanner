@@ -1,405 +1,482 @@
-# MarkerScanner — Complete Windows Setup Guide
-### From zero to running app on your Android device
+# MarkerScanner — Windows Setup Guide
+
+Complete setup guide for running the MarkerScanner React Native Android application on Windows.
+
+This guide is written for beginners. Follow every step carefully.
 
 ---
 
-## Prerequisites Checklist
+# Project Requirements
 
-Before starting, confirm you have these installed:
+Before starting, install the following software:
 
-| Tool | Check command | Required version |
-|------|--------------|-----------------|
-| Node.js | `node --version` | ≥ 18 |
-| npm | `npm --version` | ≥ 9 |
-| Java JDK | `java -version` | 17 (exact) |
-| Git | `git --version` | any |
-| Android Studio | — | Hedgehog / Iguana / Jellyfish |
-
-You said you already have in Android Studio:
-- ✅ Android SDK Platform 34
-- ✅ Android SDK Build-Tools
-- ✅ Android SDK Platform-Tools
-- ✅ Android Emulator
-- ✅ NDK 26.1.10909125
-- ✅ CMake 3.22.1
+| Software       | Required Version |
+| -------------- | ---------------- |
+| Node.js        | 18 or higher     |
+| npm            | 9 or higher      |
+| Java JDK       | 17               |
+| Git            | Latest           |
+| Android Studio | Latest Stable    |
 
 ---
 
-## PHASE 1 — Install Node.js and Java (if not done)
+# 1. Install Node.js
 
-### 1A. Install Node.js 18+
-Download from: https://nodejs.org/en/download  
-Choose the **LTS Windows Installer (.msi)**  
-During install, check ✅ "Automatically install necessary tools"
+Download:
+https://nodejs.org/
 
-Verify in PowerShell:
+Install:
+
+- Choose **LTS Version**
+- Run the `.msi` installer
+- Keep all settings default
+
+Verify installation:
+
 ```powershell
-node --version    # Should show v18.x.x or higher
-npm --version     # Should show 9.x.x or higher
+node --version
+npm --version
 ```
 
-### 1B. Install Java JDK 17
-Download from: https://adoptium.net/temurin/releases/?version=17  
-Choose: Windows x64 `.msi` installer  
-Install with default settings.
+Expected:
+
+```powershell
+v18.x.x
+9.x.x
+```
+
+---
+
+# 2. Install Java JDK 17
+
+Download:
+https://adoptium.net/en-GB/temurin/releases/?version=17
+
+Install:
+
+- Windows x64 Installer
+- Keep default settings
 
 Verify:
+
 ```powershell
 java -version
-# Should show: openjdk version "17.x.x"
+```
+
+Expected:
+
+```powershell
+openjdk version "17.x.x"
 ```
 
 ---
 
-## PHASE 2 — Set Environment Variables
+# 3. Install Android Studio
 
-Open PowerShell **as Administrator** and run each command:
+Download:
+https://developer.android.com/studio
 
-### 2A. Find your Android SDK path
-It is usually at:
+Install Android Studio with default settings.
+
+---
+
+# 4. Install Android SDK Components
+
+Open Android Studio:
+
+```text
+Android Studio → More Actions → SDK Manager
 ```
-C:\Users\KIIT0001\AppData\Local\Android\Sdk
-```
 
-Verify it exists:
+Install these:
+
+## SDK Platforms
+
+- Android 14 (API 34)
+
+## SDK Tools
+
+- Android SDK Build-Tools
+- Android SDK Platform-Tools
+- Android Emulator
+- Android SDK Command-line Tools
+- NDK (Side by side)
+- CMake
+
+Recommended versions:
+
+- NDK 26+
+- CMake 3.22+
+
+---
+
+# 5. Set Environment Variables
+
+Open PowerShell as Administrator.
+
+---
+
+## Set ANDROID_HOME
+
+Run:
+
 ```powershell
-Test-Path "C:\Users\KIIT0001\AppData\Local\Android\Sdk"
-# Should return: True
+[System.Environment]::SetEnvironmentVariable(
+"ANDROID_HOME",
+"$env:LOCALAPPDATA\Android\Sdk",
+"User"
+)
 ```
 
-### 2B. Set ANDROID_HOME
+---
+
+## Set JAVA_HOME
+
+Find Java installation:
+
 ```powershell
-[System.Environment]::SetEnvironmentVariable("ANDROID_HOME", "C:\Users\KIIT0001\AppData\Local\Android\Sdk", "User")
+Get-ChildItem "C:\Program Files\Eclipse Adoptium\"
 ```
 
-### 2C. Set JAVA_HOME
+Copy the installed JDK folder path.
+
+Example:
+
+```text
+C:\Program Files\Eclipse Adoptium\jdk-17.0.12.7-hotspot
+```
+
+Set JAVA_HOME:
+
 ```powershell
-# Find where Java 17 is installed:
-Get-ChildItem "C:\Program Files\Eclipse Adoptium\" 2>$null
-Get-ChildItem "C:\Program Files\Java\" 2>$null
+[System.Environment]::SetEnvironmentVariable(
+"JAVA_HOME",
+"C:\Program Files\Eclipse Adoptium\jdk-17.0.12.7-hotspot",
+"User"
+)
 ```
 
-Then set it (replace the path with what you found above):
-```powershell
-[System.Environment]::SetEnvironmentVariable("JAVA_HOME", "C:\Program Files\Eclipse Adoptium\jdk-17.0.x.x-hotspot", "User")
-```
+---
 
-### 2D. Add Android tools to PATH
+## Add Android SDK Tools to PATH
+
+Run:
+
 ```powershell
 $current = [System.Environment]::GetEnvironmentVariable("PATH", "User")
-$additions = ";C:\Users\KIIT0001\AppData\Local\Android\Sdk\platform-tools;C:\Users\KIIT0001\AppData\Local\Android\Sdk\emulator;C:\Users\KIIT0001\AppData\Local\Android\Sdk\tools\bin"
-[System.Environment]::SetEnvironmentVariable("PATH", $current + $additions, "User")
+
+$additions = ";$env:LOCALAPPDATA\Android\Sdk\platform-tools;$env:LOCALAPPDATA\Android\Sdk\emulator"
+
+[System.Environment]::SetEnvironmentVariable(
+"PATH",
+$current + $additions,
+"User"
+)
 ```
 
-### 2E. Close and reopen PowerShell, then verify:
+Close PowerShell and reopen it.
+
+Verify:
+
 ```powershell
-echo $env:ANDROID_HOME   # Should show SDK path
-echo $env:JAVA_HOME      # Should show JDK path
-adb version              # Should show Android Debug Bridge version
+adb version
+echo $env:ANDROID_HOME
+echo $env:JAVA_HOME
 ```
 
 ---
 
-## PHASE 3 — Download OpenCV Android SDK
+# 6. Clone the Project
 
-### 3A. Download OpenCV 4.10.0
+Clone the GitHub repository:
 
-Download this file in your browser:  
-**https://github.com/opencv/opencv/releases/download/4.10.0/opencv-4.10.0-android-sdk.zip**
-
-### 3B. Extract it
-
-Extract the ZIP. You will get a folder called `OpenCV-android-sdk`.
-
-### 3C. Place it next to the project folder
-
-Your project is at:
-```
-C:\Users\KIIT0001\Downloads\MarkerScanner\MarkerScanner\
-```
-
-Place the OpenCV folder here so the structure looks like:
-```
-C:\Users\KIIT0001\Downloads\MarkerScanner\
-    ├── MarkerScanner\          ← your project (contains android/, src/, etc.)
-    └── opencv-android-sdk\    ← rename OpenCV-android-sdk to this exact name
-            └── sdk\
-                ├── native\
-                │   ├── jni\include\opencv2\
-                │   └── libs\arm64-v8a\libopencv_java4.so
-                └── libopencv_java4.aar
-```
-
-**Rename the folder** from `OpenCV-android-sdk` to `opencv-android-sdk` (lowercase, hyphen):
 ```powershell
-Rename-Item "C:\Users\KIIT0001\Downloads\MarkerScanner\OpenCV-android-sdk" "opencv-android-sdk"
+git clone YOUR_GITHUB_REPOSITORY_URL
 ```
 
-Verify the .so file exists:
+Example:
+
 ```powershell
-Test-Path "C:\Users\KIIT0001\Downloads\MarkerScanner\opencv-android-sdk\sdk\native\libs\arm64-v8a\libopencv_java4.so"
-# Must return: True
+git clone https://github.com/yourusername/MarkerScanner.git
+```
+
+Go inside project:
+
+```powershell
+cd MarkerScanner
 ```
 
 ---
 
-## PHASE 4 — Replace the downloaded ZIP with the updated one
+# 7. Install Project Dependencies
 
-> ⚠️ The original ZIP had bugs. Download the updated ZIP from Claude and re-extract it.
-> It fixes: CMakeLists.txt, adds gradle-wrapper.properties, proguard-rules.pro, babel-plugin-module-resolver.
-
-After extracting the new ZIP, your project folder should be:
-```
-C:\Users\KIIT0001\Downloads\MarkerScanner\MarkerScanner\
-```
-
----
-
-## PHASE 5 — Create local.properties
-
-This tells Gradle where your Android SDK is.
-
-In PowerShell:
-```powershell
-cd "C:\Users\KIIT0001\Downloads\MarkerScanner\MarkerScanner\android"
-
-# Create local.properties with your SDK path
-# Note: Use forward slashes, NOT backslashes
-$content = "sdk.dir=C\:/Users/KIIT0001/AppData/Local/Android/Sdk"
-Set-Content -Path "local.properties" -Value $content
-```
-
-Verify it was created:
-```powershell
-Get-Content "local.properties"
-# Should show: sdk.dir=C\:/Users/KIIT0001/AppData/Local/Android/Sdk
-```
-
----
-
-## PHASE 6 — Install JavaScript Dependencies
+Run:
 
 ```powershell
-cd "C:\Users\KIIT0001\Downloads\MarkerScanner\MarkerScanner"
 npm install
 ```
 
-This will take 2–5 minutes. You should see packages being downloaded.
+This installs all React Native packages.
 
-Verify node_modules was created:
-```powershell
-Test-Path "node_modules"  # Should return: True
+---
+
+# 8. Download OpenCV Android SDK
+
+Download OpenCV Android SDK:
+
+https://github.com/opencv/opencv/releases
+
+Recommended:
+
+- OpenCV 4.10.0 Android SDK
+
+Extract it.
+
+Rename folder:
+
+```text
+opencv-android-sdk
 ```
 
 ---
 
-## PHASE 7 — Download the Gradle Wrapper JAR
+# 9. Place OpenCV Folder Correctly
 
-The project needs `gradlew.bat` to build. Create it:
+Folder structure MUST look like this:
 
-```powershell
-cd "C:\Users\KIIT0001\Downloads\MarkerScanner\MarkerScanner\android"
-
-# Download gradle wrapper jar
-$url = "https://raw.githubusercontent.com/gradle/gradle/v8.8.0/gradle/wrapper/gradle-wrapper.jar"
-$dest = "gradle\wrapper\gradle-wrapper.jar"
-New-Item -ItemType Directory -Force -Path "gradle\wrapper"
-Invoke-WebRequest -Uri $url -OutFile $dest
+```text
+Projects/
+├── MarkerScanner/
+└── opencv-android-sdk/
 ```
 
-Then create `gradlew.bat`:
-```powershell
-$gradlewContent = @'
-@rem ##########################################################################
-@rem  Gradle startup script for Windows
-@rem ##########################################################################
-@if "%DEBUG%"=="" @echo off
-@rem Set local scope for the variables
-setlocal
-set DIRNAME=%~dp0
-set APP_BASE_NAME=%~n0
-set APP_HOME=%DIRNAME%
+NOT inside the project folder.
 
-@rem Find java.exe
-if defined JAVA_HOME goto findJavaFromJavaHome
-set JAVA_EXE=java.exe
-goto execute
-:findJavaFromJavaHome
-set JAVA_HOME=%JAVA_HOME:"=%
-set JAVA_EXE=%JAVA_HOME%/bin/java.exe
-:execute
-"%JAVA_EXE%" -classpath "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain %*
-'@
-Set-Content -Path "gradlew.bat" -Value $gradlewContent
+Correct:
+
+```text
+Projects/
+├── MarkerScanner/
+└── opencv-android-sdk/
+```
+
+Wrong:
+
+```text
+Projects/
+└── MarkerScanner/
+    └── opencv-android-sdk/
 ```
 
 ---
 
-## PHASE 8 — Connect Your Android Device
+# 10. Verify OpenCV Installation
 
-### 8A. Enable Developer Mode on your phone
-1. Go to **Settings → About Phone**
-2. Tap **Build Number** 7 times
-3. Go back to **Settings → Developer Options**
-4. Enable **USB Debugging**
+This file must exist:
 
-### 8B. Connect via USB
+```text
+opencv-android-sdk/sdk/native/libs/arm64-v8a/libopencv_java4.so
+```
+
+---
+
+# 11. Create local.properties
+
+Go to:
+
+```text
+MarkerScanner/android/
+```
+
+Create file:
+
+```text
+local.properties
+```
+
+Add:
+
+```properties
+sdk.dir=C\:/Users/YOUR_USERNAME/AppData/Local/Android/Sdk
+```
+
+Replace:
+
+- `YOUR_USERNAME`
+  with your Windows username.
+
+Use forward slashes `/`.
+
+---
+
+# 12. Connect Android Device
+
+Enable Developer Mode:
+
+```text
+Settings → About Phone → Tap Build Number 7 times
+```
+
+Enable:
+
+- USB Debugging
+
+Connect device with USB cable.
+
+Verify connection:
 
 ```powershell
 adb devices
 ```
 
-You should see something like:
-```
+Expected:
+
+```text
 List of devices attached
-R5CW30XXXXX    device
+XXXXXXXX device
 ```
 
-If it shows `unauthorized`, check your phone — a dialog will ask "Allow USB debugging?" — tap **Allow**.
+If unauthorized:
 
-If you want to use an emulator instead:
-```powershell
-# List available AVDs
-emulator -list-avds
-
-# Start one (replace Pixel_6 with your AVD name)
-emulator -avd Pixel_6 &
-```
+- Check your phone
+- Tap "Allow USB Debugging"
 
 ---
 
-## PHASE 9 — Run the App
+# 13. Start Metro Server
 
-Open **two PowerShell windows side by side**.
+Open terminal inside project:
 
-### Window 1 — Start Metro bundler:
 ```powershell
-cd "C:\Users\KIIT0001\Downloads\MarkerScanner\MarkerScanner"
 npm start
 ```
 
-Wait until you see:
-```
-Metro waiting on exp://...
-```
+Keep this terminal running.
 
-### Window 2 — Build and install the app:
+---
+
+# 14. Run the Android App
+
+Open another terminal.
+
+Run:
+
 ```powershell
-cd "C:\Users\KIIT0001\Downloads\MarkerScanner\MarkerScanner"
 npx react-native run-android
 ```
 
-This will:
-1. Compile the Kotlin/Java native modules (~3–8 min first time)
-2. Compile the C++ OpenCV code via CMake (~5–10 min first time)
-3. Install the APK on your device
-4. Start the app
+First build may take:
+
+- 5–15 minutes
+
+The app will:
+
+- build
+- install on device
+- launch automatically
 
 ---
 
-## PHASE 10 — Verify It Works
+# 15. Build APK
 
-When the app opens:
-1. It will ask for camera permission — tap **Allow**
-2. Point your phone at a printed copy of `docs/marker.svg`
-3. The bounding box overlay should turn green when detected
-4. After 20 captures, navigate to the Gallery
+To generate APK:
+
+```powershell
+cd android
+gradlew assembleDebug
+```
+
+APK location:
+
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
+```
 
 ---
 
-## Common Errors and Fixes
+# Common Errors
 
-### ❌ "SDK location not found"
+---
+
+## Error: SDK location not found
+
+Fix:
+
+- Check `local.properties`
+- Verify SDK path is correct
+
+---
+
+## Error: JAVA_HOME not set
+
+Verify:
+
 ```powershell
-# Make sure local.properties exists with correct content:
-Get-Content "C:\Users\KIIT0001\Downloads\MarkerScanner\MarkerScanner\android\local.properties"
+echo $env:JAVA_HOME
 ```
 
-### ❌ "CMake: cannot find opencv headers"
-```powershell
-# Verify the opencv-android-sdk folder is in the RIGHT place:
-Test-Path "C:\Users\KIIT0001\Downloads\MarkerScanner\opencv-android-sdk\sdk\native\jni\include\opencv2\opencv.hpp"
-# Must return True
-```
-The folder must be OUTSIDE the MarkerScanner project folder, as a sibling.
+If empty:
 
-### ❌ "Could not find :react-native-gradle-plugin"
+- Set JAVA_HOME correctly
+
+---
+
+## Error: adb not recognized
+
+Restart terminal after setting PATH.
+
+Then run:
+
 ```powershell
-cd "C:\Users\KIIT0001\Downloads\MarkerScanner\MarkerScanner"
-npm install   # Run again — node_modules may be incomplete
+adb version
 ```
 
-### ❌ "No devices/emulators found"
+---
+
+## Error: No devices found
+
+Run:
+
 ```powershell
 adb kill-server
 adb start-server
 adb devices
 ```
 
-### ❌ Gradle build hangs
-```powershell
-cd "C:\Users\KIIT0001\Downloads\MarkerScanner\MarkerScanner\android"
-gradlew.bat --stop          # Stop all Gradle daemons
-gradlew.bat clean           # Clean build cache
-cd ..
-npx react-native run-android
-```
+---
 
-### ❌ "JAVA_HOME is not set"
-```powershell
-# Find your JDK:
-Get-ChildItem "C:\Program Files\Eclipse Adoptium\" -ErrorAction SilentlyContinue
-Get-ChildItem "C:\Program Files\Java\" -ErrorAction SilentlyContinue
+## Error: Metro cache issue
 
-# Then set it for current session:
-$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-17.0.x.x-hotspot"
-```
+Run:
 
-### ❌ Metro bundler error "Cannot find module"
 ```powershell
-cd "C:\Users\KIIT0001\Downloads\MarkerScanner\MarkerScanner"
-# Clear Metro cache and restart:
 npx react-native start --reset-cache
 ```
 
 ---
 
-## Folder Structure After Setup
+# Recommended Folder Structure
 
-```
-C:\Users\KIIT0001\Downloads\MarkerScanner\
-├── opencv-android-sdk\         ← OpenCV (downloaded separately)
-│   └── sdk\
-│       ├── native\jni\include\ ← C++ headers
-│       └── native\libs\        ← .so files per ABI
-└── MarkerScanner\              ← Your project (from ZIP)
-    ├── android\
-    │   ├── local.properties    ← Created in Phase 5
-    │   ├── gradlew.bat         ← Created in Phase 7
-    │   └── gradle\wrapper\
-    │       ├── gradle-wrapper.jar        ← Downloaded in Phase 7
-    │       └── gradle-wrapper.properties ← Already in ZIP
-    ├── node_modules\           ← Created in Phase 6
-    ├── src\
-    ├── App.tsx
-    └── package.json
+```text
+Projects/
+├── MarkerScanner/
+│   ├── android/
+│   ├── src/
+│   ├── App.tsx
+│   ├── package.json
+│   └── ...
+│
+└── opencv-android-sdk/
+    └── sdk/
 ```
 
 ---
 
-## Build APK (optional — for sharing/submission)
+# Done
 
-```powershell
-cd "C:\Users\KIIT0001\Downloads\MarkerScanner\MarkerScanner\android"
-gradlew.bat assembleDebug
-```
+If everything works correctly:
 
-APK will be at:
-```
-android\app\build\outputs\apk\debug\app-debug.apk
-```
-
-Install it manually:
-```powershell
-adb install "app\build\outputs\apk\debug\app-debug.apk"
-```
+- App launches on Android device
+- Camera opens
+- Marker detection works
+- Processed markers display successfully
